@@ -10,6 +10,7 @@
 
 #include "HwInterface.h"
 #include "../../util/data/ImgData.h"
+
 // include other camera + image specific classes
 // #include "ImageInputProcessor.h"
 // #include "ImageFormatter.h"
@@ -142,7 +143,7 @@ public:
 	 * @param	policy	specifies the encoding and decoding policy to be used
 	 * @param	hardwareID	identifies the hardware this interface interacts with
 	 */
-	CameraInterface(int bufferSize, int pullFrequency, int policy, int hardwareID);
+	CameraInterface(int bufferSize, int pollFrequency, int policy, int hardwareID);
 
 	/**
 	 * Destructor
