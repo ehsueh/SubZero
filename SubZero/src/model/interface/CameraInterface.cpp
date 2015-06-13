@@ -23,6 +23,11 @@
 void CameraInterface::poll() {
 
 	cv::Mat raw;
+	//Older version of OpenCV (tested on Alb's laptop setting)
+	// IplImage* raw = cvQueryFrame(this->camStream);
+	// cv::cvarrToMat(raw, true, true, 0);
+
+	//New version of OpenCV (not yet tested)
 	camStream.read(raw);
 	Data* decoded = this->decode(&raw);
 	this->storeToBuffer(decoded);
@@ -62,6 +67,7 @@ CameraInterface::CameraInterface(int bufferSize, int pollFrequency, CameraPositi
 	this->pollFrequency = pollFrequency;
 	this->position = position;
 	this->camStream(this->position);
+	// this->camStream = cvCaptureFromCAM(this->position);
 
 	// thread for reading and polling camera input
    readThreads.push_back(std::thread(&CameraInterface::in, this));

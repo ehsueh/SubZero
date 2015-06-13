@@ -35,6 +35,8 @@ private:
 	CameraPosition position;
 	VideoCapture camStream;
 
+	// CvCapture* camStream;
+
 	/* ==========================================================================
 	 * 				INTERACTING WITH DATA COMING IN (FROM Camera)
 	 * ==========================================================================
