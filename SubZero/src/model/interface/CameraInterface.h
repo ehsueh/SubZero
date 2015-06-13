@@ -10,11 +10,8 @@
 
 #include "HwInterface.h"
 #include "../../util/data/ImgData.h"
-
-// include other camera + image specific classes
-// #include "ImageInputProcessor.h"
-// #include "ImageFormatter.h"
-// #inlcude "CamIntrinsic.h" //stores camera intrinsic parameters
+#include "opencv2/highgui/highgui.hpp"
+#include <iostream>
 
 enum CameraPosition {
 	FRONT,
@@ -35,6 +32,9 @@ class CameraInterface : public HwInterface {
 
 private:
 
+	CameraPosition position;
+	VideoCapture camStream;
+
 	/* ==========================================================================
 	 * 				INTERACTING WITH DATA COMING IN (FROM Camera)
 	 * ==========================================================================
@@ -48,8 +48,7 @@ private:
 	 * @return	data polled
 	 */
 
-	// bug fix... seems like the virtual has to have the same return type.. suggest use of Data
-	Data* poll();
+	virtual void poll();
 
 	/**
 	 * Decode the data.
@@ -89,6 +88,14 @@ public:
 	 */
 
 	/**
+	 * Return the position of the camera.
+	 * No way to reset camera position without deleting and recreating another
+	 * CameraInterface. This is to prevent confusion such as data buffer having
+	 * frames from fixed sources.
+	 */
+	CameraPosition getPosition();
+
+	/**
 	 * Return the most recent buffer data.
 	 * This function is defined and implemented by the parent class (HwInterface).
 	 * @return	Data*	the most recent data in buffer
@@ -110,7 +117,7 @@ public:
 	 * Get the frequency of data polling
 	 * @return	polling frequency i.e. sampling rate
 	 */
-	virtual double getPollFrequency();
+	virtual int getPollFrequency();
 
 	/**
 	 * Set the frequency of data polling/polling.
@@ -139,11 +146,10 @@ public:
 	/**
 	 * Constructor for Hardware Interface
 	 * @param	bufferSize	buffer size for the interface
-	 * @param 	pullFrequencey specifies how frequent video stream is pulled
-	 * @param	policy	specifies the encoding and decoding policy to be used
-	 * @param	hardwareID	identifies the hardware this interface interacts with
+	 * @param 	pollFrequencey specifies how frequent video stream is pulled
+	 * @param	position	camera position
 	 */
-	CameraInterface(int bufferSize, int pollFrequency, int policy, int hardwareID);
+	CameraInterface(int bufferSize, int pollFrequency, CameraPosition position);
 
 	/**
 	 * Destructor

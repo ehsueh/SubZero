@@ -6,6 +6,8 @@
  */
 
 #include "FPGAInterface.h"
+#include <sstream>
+#include <iterator>
 
 
 /* ==========================================================================
@@ -18,16 +20,16 @@
 
 void FPGAInterface::poll() {
 
-	std::string raw;
-	cin >> raw;
-	Data* decoded = this->decode(&raw);
-	this->storeToBuffer(decoded);
+    std::string raw;
+    std::cin >> raw;
+    Data* decoded = this->decode(&raw);
+    this->storeToBuffer(decoded);
 
 };
 
-FPGAData* FPGAInterface::decode(string* data) {
+FPGAData* FPGAInterface::decode(std::string* data) {
 
-    std::istringstream iss(data);
+    std::istringstream iss(*data);
     std::istream_iterator<std::string> begin(iss), end;
     std::vector<std::string> attributes(begin, end);
 
@@ -59,36 +61,36 @@ FPGAData* FPGAInterface::decode(string* data) {
  */
 
 void FPGAInterface::deleteFromBuffer() {
-	this->decodedBuffer.pop();
+    this->decodedBuffer.pop();
 };
 
 
 void FPGAInterface::storeToBuffer(Data* data) {
-	this->decodedBuffer.push(data);
+    this->decodedBuffer.push(data);
 }
 
 void FPGAInterface::in() {
 
-	struct timespec tictoc;
-	clock_gettime(CLOCK_MONOTONIC_RAW, &tictoc);
+    struct timespec tictoc;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &tictoc);
 
-	while (true) {
+    while (true) {
 
-		// setting period of polling and auto-clearing
-		// iterate once every this many seconds
-		tictoc.tv_nsec += (long) (1000000000 / pollFrequency);
-		tictoc.tv_sec += (time_t) (tictoc.tv_nsec /pollFrequency);
-		tictoc.tv_nsec %= 1000000000;
-		clock_nanosleep(CLOCK_MONOTONIC_RAW, TIMER_ABSTIME, &tictoc, NULL);
+        // setting period of polling and auto-clearing
+        // iterate once every this many seconds
+        tictoc.tv_nsec += (long) (1000000000 / pollFrequency);
+        tictoc.tv_sec += (time_t) (tictoc.tv_nsec /pollFrequency);
+        tictoc.tv_nsec %= 1000000000;
+        clock_nanosleep(CLOCK_MONOTONIC_RAW, TIMER_ABSTIME, &tictoc, NULL);
 
-		if ( decodedBuffer.size() >= bufferSize) {
-			// delete old stuff from buffer
-			this->deleteFromBuffer();
-		}
+        if ( decodedBuffer.size() >= bufferSize) {
+            // delete old stuff from buffer
+            this->deleteFromBuffer();
+        }
 
-		this->poll();
+        this->poll();
 
-	}
+    }
 }
 
 /* ==========================================================================
@@ -99,11 +101,11 @@ void FPGAInterface::in() {
  */
 
 void FPGAInterface::set(Attributes attr, int value) {
-	cout << attr << ":" << value << endl;
+    std::cout << attr << ":" << value << std::endl;
 }
 
 // for method 2: using libusb
-void FPGAInterface::send(string* data) {
+void FPGAInterface::send(std::string* data) {
 
 };
 
@@ -113,30 +115,30 @@ void FPGAInterface::send(string* data) {
  */
 
 Data* FPGAInterface::getDataFromBuffer() {
-	Data* data = new Data("bad");
-	if (! (this->decodedBuffer).empty()) {
-		data = &(this->decodedBuffer.back());
-	} else {
-		std::cout << "Nothing in buffer";
-	}
-	return data;
+    Data* data = new Data("bad");
+    if (! (this->decodedBuffer).empty()) {
+        data = &(this->decodedBuffer.back());
+    } else {
+        std::cout << "Nothing in buffer";
+    }
+    return data;
 };
 
 int FPGAInterface::getPollFrequency() {
-	return this->pollFrequency;
+    return this->pollFrequency;
 };
 
 void FPGAInterface::setPollFrequency(int frequency){
-	this->pollFrequency = frequency;
+    this->pollFrequency = frequency;
 };
 
 
 int FPGAInterface::getBufferSize(){
-	return this->bufferSize;
+    return this->bufferSize;
 };
 
 void FPGAInterface::setBufferSize(int bufferSize) {
-	this->bufferSize = bufferSize;
+    this->bufferSize = bufferSize;
 };
 
 
@@ -148,29 +150,29 @@ void FPGAInterface::setBufferSize(int bufferSize) {
 
 FPGAInterface::FPGAInterface(int bufferSize, int pollFrequency) {
 
-	this->bufferSize = bufferSize;
-	this->pollFrequency = pollFrequency;
+    this->bufferSize = bufferSize;
+    this->pollFrequency = pollFrequency;
 
-	// thread for reading and polling FPGA input
-	// main thread will listen for commands to be sent to FPGA
-	readThread(in);
+    // thread for reading and polling FPGA input
+    // main thread will listen for commands to be sent to FPGA
+   readThreads.push_back(std::thread(&FPGAInterface::in, this));
 
 }
 
 FPGAInterface::~FPGAInterface() {
 
-	// join readThread with main
-	readThread.join();
+    // join readThread with main
+    for(auto& t: readThreads) {t.join();}
 
-	// clears the queue
-	while ( ! decodedBuffer.empty()) {
-		decodedBuffer.pop();
-	}
-	// not sure if the above also frees up memory used up by the "queue container"
-	// whatever the container may be... delete it by following the pointer
-	delete &(this->decodedBuffer);
-	delete &(this->bufferSize);
-	delete &(this->pollFrequency);
+    // clears the queue
+    while ( ! decodedBuffer.empty()) {
+        decodedBuffer.pop();
+    }
+    // not sure if the above also frees up memory used up by the "queue container"
+    // whatever the container may be... delete it by following the pointer
+    delete &(this->decodedBuffer);
+    delete &(this->bufferSize);
+    delete &(this->pollFrequency);
 
 
 
