@@ -60,6 +60,19 @@ private:
 public:
 
 	/* ==========================================================================
+	 * 								GETTERS AND SETTERS
+	 * ==========================================================================
+	 */
+
+	/**
+	 * Return the position of the camera.
+	 * No way to reset camera position without deleting and recreating another
+	 * CameraInterface. This is to prevent confusion such as data buffer having
+	 * frames from fixed sources.
+	 */
+	CameraPosition getPosition();
+
+	/* ==========================================================================
 	 * 							CONSTRUCTOR AND DESTRUCTOR
 	 * ==========================================================================
 	 */

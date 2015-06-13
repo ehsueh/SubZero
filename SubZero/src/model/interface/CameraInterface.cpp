@@ -42,19 +42,29 @@ ImgData* CameraInterface::decode(cv::Mat* data) {
 };
 
 /* ==========================================================================
+ * 								GETTERS AND SETTERS
+ * ==========================================================================
+ */
+
+CameraPosition getPosition(){
+	return this->position;
+}
+
+/* ==========================================================================
  * 							CONSTRUCTOR AND DESTRUCTOR
  * ==========================================================================
  */
 
 
-CameraInterface::CameraInterface(int bufferSize, int pollFrequency) {
+CameraInterface::CameraInterface(int bufferSize, int pollFrequency, CameraPosition position) {
 
 	this->bufferSize = bufferSize;
 	this->pollFrequency = pollFrequency;
-	this->camStream(0);
+	this->position = position;
+	this->camStream(this->position);
 
 	// thread for reading and polling camera input
-   readThreads.push_back(std::thread(&FPGAInterface::in, this));
+   readThreads.push_back(std::thread(&CameraInterface::in, this));
 
 }
 
